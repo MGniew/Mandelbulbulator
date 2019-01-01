@@ -38,7 +38,7 @@ float3 getCameraRay(
 
 int checkIfPointInSet(private float3 point) {
 
-    private n = 4;
+    private int n = 4;
     float x = point.x;
     float y = point.y;
     float z = point.z;
@@ -119,7 +119,7 @@ float3 getNormalVector(private float3 point) {
     float3 result = (float3)(0, 0, 0);
 
     for (int i=0; i<NUM_NORMALS; i++) {
-        if (checkIfPointInSet(point + basicNormals[i] * 0.01) == 0) {
+        if (checkIfPointInSet(point + basicNormals[i] * 0.01f) == 0) {
             result = result + basicNormals[i];
         }
     }
@@ -132,7 +132,7 @@ float3 getNormalVector(private float3 point) {
 }
 
 struct Material getMaterial(private float3 point) {
-    
+
     struct Material material;
     // material.ambience = (float3)(0.7, 0.5, 0.2);
     // material.specular = (float3)(0.2, 0.2, 0.2);
@@ -188,7 +188,7 @@ float3 trace(
     float3 color = (float3)(0,0,0);
     float mult = 1;
     for (int j = 0; j < 2; j ++) {
-        
+
         __private float3 crossPoint;
         __private  float3 normalVector;
         float dist = intersect_mandelbulb(
@@ -221,7 +221,6 @@ __kernel void get_image(
         __constant struct Camera* camera,
         __constant struct Light* lights,
         const int nLights,
-        __constant struct Sphere* spheres,
         __global float3* output) {
 
     const int pixelX = get_global_id(0);

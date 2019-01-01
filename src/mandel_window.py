@@ -1,17 +1,10 @@
-from PyQt5 import QtCore, QtWidgets
-from PyQt5.QtWidgets import QMainWindow, QLabel, QGridLayout, QWidget, QComboBox, QDesktopWidget, \
-    QAction, QGroupBox, QVBoxLayout, QFormLayout, QHBoxLayout, QPushButton
-from PyQt5.QtCore import QSize, QRect
-from PyQt5.QtGui import QIcon, QImage, QColor, QPixmap
-from PyQt5 import QtGui
-from opencl_connector import get_platforms
-import numpy
-from random import uniform
-
-
-platforms = get_platforms()
-w = 100
-h = 100
+from PyQt5.QtWidgets import QLabel, QGridLayout, QWidget, QComboBox, QGroupBox, QVBoxLayout, \
+    QPushButton
+from opencl_connector import Connector
+from PyQt5.QtCore import QSize
+from PyQt5.QtGui import QPixmap
+from PyQt5.QtWidgets import QLabel, QGridLayout, QWidget, QComboBox, QGroupBox, QVBoxLayout, \
+    QPushButton
 
 
 class MandelWindow(QWidget):
@@ -20,7 +13,8 @@ class MandelWindow(QWidget):
         self.initUI()
 
     def initUI(self):
-        self.setMinimumSize(QSize(640, 480))
+        self.connector = Connector()
+        self.setMinimumSize(QSize(640, 640))
         self.create_grid_layout()
 
         self.setWindowTitle("Mandelbulbulator")
@@ -28,16 +22,12 @@ class MandelWindow(QWidget):
 
     def create_grid_layout(self):
         grid = QGridLayout()
-        # grid.addWidget(self.get_image_settings_box(), 0, 0)
-        grid.addWidget(self.get_platforms_combobox(), 0, 1)
         grid.addWidget(self.get_mandelbrot_image_box(), 0, 0)
+        grid.addWidget(self.get_platforms_combobox(), 0, 1)
         self.setLayout(grid)
 
     def get_mandelbrot_image_box(self):
-        self.image = QImage(w, h, QImage.Format_ARGB32)
-        for x in range(self.image.width()):
-            for y in range(self.image.height()):
-                self.image.setPixel(x, y, QColor(255, x * 2.56, y * 2.56, 255).rgb())
+        self.image = self.connector.get_image()
         self.mandel_pixels = QPixmap.fromImage(self.image)
         self.mandel_image = QPixmap(self.mandel_pixels)
         self.mandel = QLabel(self)
@@ -58,6 +48,7 @@ class MandelWindow(QWidget):
         return group_box
 
     def get_platforms_combobox(self):
+        platforms = self.connector.get_platforms()
         platforms_combobox = QComboBox(self)
         self.choosed_platform = QLabel("Choose your platform")
 
@@ -78,12 +69,8 @@ class MandelWindow(QWidget):
 
     def platform_change(self, platform):
         self.choosed_platform.setText(f"Current platform: {platform}")
+        self.connector.set_device(platform)
 
     def reload_button_clicked(self):
-        r_change = uniform(1.0, 2.56)
-        g_change = uniform(1.0, 2.56)
-        b_change = uniform(1.0, 2.56)
-        for x in range(self.image.width()):
-            for y in range(self.image.height()):
-                self.image.setPixel(x, y, QColor(x * r_change, x * g_change, y * b_change, 255).rgb())
+        self.image = self.connector.get_image()
         self.mandel.setPixmap(QPixmap.fromImage(self.image))
