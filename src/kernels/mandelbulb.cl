@@ -38,12 +38,12 @@ float3 getCameraRay(
 
 int checkIfPointInSet(private float3 point) {
 
-    private int n = 4;
+    private int n = 5;
     float x = point.x;
     float y = point.y;
     float z = point.z;
 
-    for (int i=0; i<128; i++) {
+    for (int i=0; i<64; i++) {
 
         float r = sqrt(x*x + y*y +z*z);
         float phi = atan2(y, x);
@@ -67,7 +67,7 @@ float intersect_mandelbulb(
     const float zFar,
     private float3* crossPoint) {
 
-    private float step = 0.01;
+    private float step = 0.01f;
     private float3 vec = origin;
 
     for (float dist = 0; dist<zFar; dist+=step) {

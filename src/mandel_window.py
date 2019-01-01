@@ -5,6 +5,7 @@ from PyQt5.QtCore import QSize
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QLabel, QGridLayout, QWidget, QComboBox, QGroupBox, QVBoxLayout, \
     QPushButton
+import time
 
 
 class MandelWindow(QWidget):
@@ -13,12 +14,14 @@ class MandelWindow(QWidget):
         self.initUI()
 
     def initUI(self):
+        self.animate = False
         self.connector = Connector()
         self.setMinimumSize(QSize(640, 640))
         self.create_grid_layout()
 
         self.setWindowTitle("Mandelbulbulator")
         self.show()
+        self.animation()
 
     def create_grid_layout(self):
         grid = QGridLayout()
@@ -69,8 +72,14 @@ class MandelWindow(QWidget):
 
     def platform_change(self, platform):
         self.choosed_platform.setText(f"Current platform: {platform}")
-        self.connector.set_device(platform)
 
     def reload_button_clicked(self):
-        self.image = self.connector.get_image()
-        self.mandel.setPixmap(QPixmap.fromImage(self.image))
+        self.animate = not self.animate
+        self.animation()
+
+    def animation(self):
+        while self.animate:
+            self.image = self.connector.get_image()
+            self.mandel.setPixmap(QPixmap.fromImage(self.image))
+            print('Animate')
+            time.sleep(1)
