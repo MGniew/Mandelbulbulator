@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QLabel, QGridLayout, QWidget, QComboBox, QGroupBox, QVBoxLayout, \
     QPushButton
-from opencl_connector import Connector
+from src.opencl_connector import Connector
 from PyQt5.QtCore import QSize
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QLabel, QGridLayout, QWidget, QComboBox, QGroupBox, QVBoxLayout, \
@@ -74,12 +74,8 @@ class MandelWindow(QWidget):
         self.choosed_platform.setText(f"Current platform: {platform}")
 
     def reload_button_clicked(self):
-        self.animate = not self.animate
         self.animation()
 
     def animation(self):
-        while self.animate:
-            self.image = self.connector.get_image()
-            self.mandel.setPixmap(QPixmap.fromImage(self.image))
-            print('Animate')
-            time.sleep(1)
+        self.image = self.connector.get_image()
+        self.mandel.setPixmap(QPixmap.fromImage(self.image))

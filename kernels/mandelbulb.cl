@@ -235,5 +235,13 @@ __kernel void get_image(
             camera->zFar,
             lights, nLights);
 
-    output[pixelY * pixelWidth + pixelX] = result;
+    result = fabs(result);
+    if (result.x > 1)
+        result.x = 1;
+    if (result.y > 1)
+        result.y = 1;
+    if (result.z > 1)
+        result.z = 1;
+
+    output[pixelY * pixelWidth + pixelX] = result * 254;
 }

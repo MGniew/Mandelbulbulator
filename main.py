@@ -1,6 +1,6 @@
 import sys
-from style import get_app_with_dark_theme
-from mandel_window import MandelWindow
+from src.style import get_app_with_dark_theme
+from src.mandel_window import MandelWindow
 
 
 if __name__ == "__main__":
