@@ -7,18 +7,23 @@ class Camera(object):
 
     camera_struct = np.dtype(
         [("position", cl.cltypes.float3),
-         ("topLeftCorner", cl.cltypes.float3),
-         ("rightVector", cl.cltypes.float3),
+         ("topLeftCorner", cl.cltypes.float3), ("rightVector", cl.cltypes.float3),
          ("upVector", cl.cltypes.float3),
          ("worldWidth", cl.cltypes.float),
          ("worldHeight", cl.cltypes.float),
          ("zFar", cl.cltypes.float)])
 
+    light_struct = np.dtype(
+        [("position", cl.cltypes.float3),
+         ("ambience", cl.cltypes.float3),
+         ("diffuse", cl.cltypes.float3),
+         ("specular", cl.cltypes.float3)])
+
     def __init__(
             self,
             width,
             height,
-            position=[0, 0, -2],
+            position=[0, 0, -2], #  -2
             direction=[0, 0, 1],
             z_near=1,
             z_far=8,
@@ -29,6 +34,7 @@ class Camera(object):
         self.direction = np.array(direction)
         self.direction = self.direction / np.linalg.norm(self.direction)
         aspect = width/height
+        print(aspect)
         self.z_near = z_near
         self.world_height = 2 * math.tan((povy * math.pi/180)/2) * z_near
         self.world_width = aspect * self.world_height
@@ -38,14 +44,31 @@ class Camera(object):
                     direction)
         self.up = self.up / np.linalg.norm(self.up)
         self.right = np.cross(self.direction, self.up)
+
         self.update()
 
     def rotate(self, up, left, down, right):
         pass
 
-    def move(self, forward, backward):
+    def get_light_at_camera_position(self):
+        return np.array((cl.array.vec.make_float3(*self.position.tolist()),
+                         cl.array.vec.make_float3(0.5, 0.4, 0.5),
+                         cl.array.vec.make_float3(0.5, 0.5, 0.5),
+                         cl.array.vec.make_float3(0.2, 0.4, 0.5)),
+                        dtype=Camera.light_struct)
 
-        self.position = self.position + self.direction * 1/20
+    def move(self, forward, backward, left, right):
+
+        if forward:
+            self.position = self.position + self.direction * 1/150
+        elif backward:
+            self.position = self.position - self.direction * 1/20
+
+        if left:
+            self.position = self.position - self.right * 1/300
+        elif right:
+            self.position = self.position + self.right * 1/300
+
         self.update()
 
     def update(self):
@@ -64,3 +87,16 @@ class Camera(object):
                          np.float(self.world_height),
                          np.float(self.z_far)),
                         dtype=Camera.camera_struct)
+
+    def rotate_aroud_center(self):
+
+        self.move(False, False, False, True)
+        self.direction = np.array([0, 0, 0]) - self.position
+        self.direction = self.direction / np.linalg.norm(self.direction)
+
+        self.up = np.cross(self.right, self.direction)
+        self.up = self.up / np.linalg.norm(self.up)
+
+        self.right = np.cross(self.direction, self.up)
+        self.right = self.right / np.linalg.norm(self.right)
+        self.update()
