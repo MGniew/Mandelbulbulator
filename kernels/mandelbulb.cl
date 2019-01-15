@@ -54,7 +54,7 @@ int checkIfPointInSet(private float3 point) {
         y = r * sin(n * theta) * sin(n * phi) + point.y;
         z = r * cos(n * theta) + point.z;
 
-        if (x*x + y*y + z*z > 2) {
+        if (x*x + y*y + z*z < 2) {
             return 0;
         }
     }

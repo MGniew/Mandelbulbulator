@@ -70,8 +70,12 @@ class Connector:
     def get_image(self):
 
         for i in range(1000):
+
+            self.camera.rotate()
             print(i)
-            self.camera.rotate_aroud_center()
+            #self.camera.rotate_aroud_center()
+            if i <= 44:
+                continue
             #  self.camera.move(True, False, False, False)
             self.camera_buf = cl.Buffer(
                 self.cl_context,
@@ -95,5 +99,6 @@ class Connector:
                                                 (self.results[y][x][1]),
                                                 (self.results[y][x][2]),
                                                 255).rgb())
-            image.save("out/{}.png".format(i), "png")
+            image.save("out2/{}.png".format(i), "png")
+        quit()
         return image
