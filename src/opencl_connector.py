@@ -74,7 +74,7 @@ class Connector:
             self.camera.rotate()
             print(i)
             #self.camera.rotate_aroud_center()
-            if i <= 44:
+            if i <= 382:
                 continue
             #  self.camera.move(True, False, False, False)
             self.camera_buf = cl.Buffer(
