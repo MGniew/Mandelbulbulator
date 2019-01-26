@@ -38,12 +38,12 @@ float3 getCameraRay(
 
 int checkIfPointInSet(private float3 point) {
 
-    private n = 4;
+    private int n = 9;
     float x = point.x;
     float y = point.y;
     float z = point.z;
 
-    for (int i=0; i<128; i++) {
+    for (int i=0; i<32; i++) { // 64
 
         float r = sqrt(x*x + y*y +z*z);
         float phi = atan2(y, x);
@@ -54,7 +54,7 @@ int checkIfPointInSet(private float3 point) {
         y = r * sin(n * theta) * sin(n * phi) + point.y;
         z = r * cos(n * theta) + point.z;
 
-        if (x*x + y*y + z*z > 2) {
+        if (x*x + y*y + z*z < 2) {
             return 0;
         }
     }
@@ -67,7 +67,7 @@ float intersect_mandelbulb(
     const float zFar,
     private float3* crossPoint) {
 
-    private float step = 0.01;
+    private float step = 0.005f;  // 0.0005 best
     private float3 vec = origin;
 
     for (float dist = 0; dist<zFar; dist+=step) {
@@ -119,7 +119,7 @@ float3 getNormalVector(private float3 point) {
     float3 result = (float3)(0, 0, 0);
 
     for (int i=0; i<NUM_NORMALS; i++) {
-        if (checkIfPointInSet(point + basicNormals[i] * 0.01) == 0) {
+        if (checkIfPointInSet(point + basicNormals[i] * 0.01f) == 0) {
             result = result + basicNormals[i];
         }
     }
@@ -132,7 +132,7 @@ float3 getNormalVector(private float3 point) {
 }
 
 struct Material getMaterial(private float3 point) {
-    
+
     struct Material material;
     // material.ambience = (float3)(0.7, 0.5, 0.2);
     // material.specular = (float3)(0.2, 0.2, 0.2);
@@ -188,7 +188,7 @@ float3 trace(
     float3 color = (float3)(0,0,0);
     float mult = 1;
     for (int j = 0; j < 2; j ++) {
-        
+
         __private float3 crossPoint;
         __private  float3 normalVector;
         float dist = intersect_mandelbulb(
@@ -221,7 +221,6 @@ __kernel void get_image(
         __constant struct Camera* camera,
         __constant struct Light* lights,
         const int nLights,
-        __constant struct Sphere* spheres,
         __global float3* output) {
 
     const int pixelX = get_global_id(0);
@@ -236,5 +235,14 @@ __kernel void get_image(
             camera->zFar,
             lights, nLights);
 
-    output[pixelY * pixelWidth + pixelX] = result;
+    result = fabs(result);
+    if (result.x > 1)
+        result.x = 1;
+    if (result.y > 1)
+        result.y = 1;
+    if (result.z > 1)
+        result.z = 1;
+
+    output[pixelY * pixelWidth + pixelX] = result * 254;
+    //output[pixelX * pixelWidth + pixelY] = result * 254;
 }
