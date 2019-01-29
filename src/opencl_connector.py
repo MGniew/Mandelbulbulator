@@ -14,7 +14,8 @@ class Connector:
                                       ("diffuse", cl.cltypes.float3),
                                       ("specular", cl.cltypes.float3)])
 
-        camera = Camera(640, 640)
+        self.size = 640
+        camera = Camera(self.size, self.size)
         self.camera = camera
 
         self.light = np.array((array.vec.make_float3(0, 5, 2),
@@ -36,7 +37,9 @@ class Connector:
         self.results_buf = None
         self.program = None
         self.kernel_code = None
-        self.results = np.zeros((640, 640), dtype=cl.cltypes.float3)
+        self.n = np.int32(3)
+        self.reverse = np.int32(0)
+        self.results = np.zeros((self.size, self.size), dtype=cl.cltypes.int3)
         self.build_program()
 
     def build_program(self):
@@ -67,38 +70,39 @@ class Connector:
     def set_device(self, platform):
         self.choosed_device = platform.get_devices()
 
+    def update_image(self, position, direction, n, reverse):
+        self.n = np.int32(n)
+        self.reverse = np.int32(1) if reverse else np.int32(0)
+        self.camera.set_options(position, direction)
+
     def get_image(self):
 
-        for i in range(1000):
+        # self.camera.rotate()
+        # self.camera.rotate_aroud_center()
+        # self.camera.move(True, False, False, False)
+        self.camera_buf = cl.Buffer(
+            self.cl_context,
+            self.flags.READ_ONLY | self.flags.COPY_HOST_PTR,
+            hostbuf=self.camera.get_cl_repr())
 
-            self.camera.rotate()
-            print(i)
-            #self.camera.rotate_aroud_center()
-            if i <= 382:
-                continue
-            #  self.camera.move(True, False, False, False)
-            self.camera_buf = cl.Buffer(
-                self.cl_context,
-                self.flags.READ_ONLY | self.flags.COPY_HOST_PTR,
-                hostbuf=self.camera.get_cl_repr())
+        self.program.get_image(
+            self.cl_queue,
+            self.results.shape,
+            None, self.camera_buf,
+            self.lights_buf, self.n_lights, self.n, self.reverse, self.results_buf)
 
-            self.program.get_image(
-                self.cl_queue,
-                self.results.shape,
-                None, self.camera_buf,
-                self.lights_buf, self.n_lights, self.results_buf)
+        self.cl_queue.finish()
 
-            self.cl_queue.finish()
+        cl.enqueue_copy(self.cl_queue, self.results, self.results_buf)
+        # width, height = self.results.shape
+        print(self.results)
+        image = QImage(self.size, self.size, QImage.Format_ARGB32)
+        for x in range(image.width()):
+            for y in range(image.height()):
+                image.setPixel(x, y, QColor((self.results[y][x][0]),
+                                            (self.results[y][x][1]),
+                                            (self.results[y][x][2]),
+                                            255).rgb())
+        #  image.save("out2/{}.png".format(i), "png")
 
-            cl.enqueue_copy(self.cl_queue, self.results, self.results_buf)
-            # width, height = self.results.shape
-            image = QImage(640, 640, QImage.Format_ARGB32)
-            for x in range(image.width()):
-                for y in range(image.height()):
-                    image.setPixel(x, y, QColor((self.results[y][x][0]),
-                                                (self.results[y][x][1]),
-                                                (self.results[y][x][2]),
-                                                255).rgb())
-            image.save("out2/{}.png".format(i), "png")
-        quit()
         return image
