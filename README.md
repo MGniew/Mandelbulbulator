@@ -1,13 +1,14 @@
 # Mandelbulbulator Project
+**Generate Mandelbulbs with OpenCL and Raytracing.**
+![Mandelbulbulator Application](docs/screenshot1.png "Mandelbulbulator Application")
 
-Generate Mandelbulbs with OpenCL and Raytracing.
 ## Requirements
 ```bash
 pip install -r requirements.txt
 ```
 
 ### Troubleshooting
-#### missing packages
+#### Missing packages
 check if you have all these packages installed:
 ```
 pip list
@@ -59,3 +60,5 @@ echo -n 0 > /sys/module/i915/parameters/enable_hangcheck
 ## Authors
 Mateusz Gniewkowski
 Beata Szeląg
+
+![Mandelbulbulator Application](docs/screenshot2.png "Mandelbulbulator Application")
