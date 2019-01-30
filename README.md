@@ -51,7 +51,7 @@ python main.py
 ## Troubleshooting
 ### Image is not fully rendered
 That is because of timeouts on your graphic card.
-Try turing them off:
+Try turning them off:
 ```
 sudo su
 echo -n 0 > /sys/module/i915/parameters/enable_hangcheck
