@@ -2,6 +2,5 @@
 
 ## Run
 ```bash
-cd src/
-python mandel_viewer.py
+python main.py
 ```

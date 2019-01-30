@@ -36,9 +36,8 @@ float3 getCameraRay(
 }
 
 
-int checkIfPointInSet(private float3 point) {
+int checkIfPointInSet(private float3 point, const int n, const int reverse) {
 
-    private int n = 9;
     float x = point.x;
     float y = point.y;
     float z = point.z;
@@ -54,9 +53,16 @@ int checkIfPointInSet(private float3 point) {
         y = r * sin(n * theta) * sin(n * phi) + point.y;
         z = r * cos(n * theta) + point.z;
 
-        if (x*x + y*y + z*z < 2) {
-            return 0;
-        }
+		if (reverse == 1) {
+			if (x*x + y*y + z*z < 2) {
+				return 0;
+			}
+		} else {
+			if (x*x + y*y + z*z > 2) {
+				return 0;
+			}
+		}
+
     }
     return 1;
 }
@@ -65,7 +71,9 @@ float intersect_mandelbulb(
     const float3 origin,
     const float3 direction,
     const float zFar,
-    private float3* crossPoint) {
+    private float3* crossPoint,
+    const int n,
+    const int reverse) {
 
     private float step = 0.005f;  // 0.0005 best
     private float3 vec = origin;
@@ -73,7 +81,7 @@ float intersect_mandelbulb(
     for (float dist = 0; dist<zFar; dist+=step) {
         vec = origin + direction * dist;
 
-        if (checkIfPointInSet(vec) == 1) {
+        if (checkIfPointInSet(vec, n, reverse) == 1) {
             *crossPoint = vec;
             return 1;
         }
@@ -114,12 +122,12 @@ constant float3 basicNormals[NUM_NORMALS] = {
 (float3)(1, 0, 1),
 };
 
-float3 getNormalVector(private float3 point) {
+float3 getNormalVector(private float3 point, const int n, const int reverse) {
 
     float3 result = (float3)(0, 0, 0);
 
     for (int i=0; i<NUM_NORMALS; i++) {
-        if (checkIfPointInSet(point + basicNormals[i] * 0.01f) == 0) {
+        if (checkIfPointInSet(point + basicNormals[i] * 0.01f, n, reverse) == 0) {
             result = result + basicNormals[i];
         }
     }
@@ -149,12 +157,14 @@ float3 getColor(
         __private int nLights,
         __private float3 crossPoint,
         __private float3 observationVector,
-        __private float3* normalVector) {
+        __private float3* normalVector,
+        const int n,
+		const int reverse) {
 
     struct Material material = getMaterial(crossPoint);
 
 
-    *normalVector = getNormalVector(crossPoint); //temp
+    *normalVector = getNormalVector(crossPoint, n, reverse); //temp
     float3 resultColor = material.ambience * (float3)(0.4f, 0.4f, 0.4f);
 
     for (int i = 0; i < nLights; i++) {
@@ -182,7 +192,9 @@ float3 trace(
         float3 direction,
         const int zFar,
         __constant struct Light* lights,
-        const int nLights) {
+        const int nLights,
+        const int n,
+        const int reverse) {
 
 
     float3 color = (float3)(0,0,0);
@@ -195,7 +207,9 @@ float3 trace(
            origin,
            direction,
            zFar,
-           &crossPoint);
+           &crossPoint,
+           n,
+           reverse);
 
         if (dist >= 0) {
             color += mult * getColor(
@@ -203,7 +217,9 @@ float3 trace(
                 nLights,
                 crossPoint,
                 direction,
-                &normalVector);
+                &normalVector,
+                n,
+                reverse);
         }
         else {
             color += mult * (float3)(1, 1, 1);
@@ -221,7 +237,9 @@ __kernel void get_image(
         __constant struct Camera* camera,
         __constant struct Light* lights,
         const int nLights,
-        __global float3* output) {
+        const int n,
+        const int reverse,
+        __global int3* output) {
 
     const int pixelX = get_global_id(0);
     const int pixelY = get_global_id(1);
@@ -233,7 +251,7 @@ __kernel void get_image(
                 pixelY, pixelWidth,
                 pixelHeight),
             camera->zFar,
-            lights, nLights);
+            lights, nLights, n, reverse);
 
     result = fabs(result);
     if (result.x > 1)
@@ -243,6 +261,6 @@ __kernel void get_image(
     if (result.z > 1)
         result.z = 1;
 
-    output[pixelY * pixelWidth + pixelX] = result * 254;
+    output[pixelY * pixelWidth + pixelX] = convert_int3(result * 254);
     //output[pixelX * pixelWidth + pixelY] = result * 254;
 }

@@ -20,22 +20,22 @@ class Camera(object):
          ("specular", cl.cltypes.float3)])
 
     def __init__(
-            # self,
-            # width,
-            # height,
-            # position=[0, 0, -2], #  -2
-            # direction=[0, 0, 1],
-            # z_near=1,
-            # z_far=8,
-            # povy=80):
             self,
             width,
             height,
-            position=[0.1, 0.1, 0],
+            position=[0, 0, -2],
             direction=[0, 0, 1],
-            z_near=0.5,
-            z_far=8,
+            z_near=0.1,
+            z_far=5,
             povy=90):
+            # self,
+            # width,
+            # height,
+            # position=[0.1, 0.1, 0],
+            # direction=[0, 0, 1],
+            # z_near=0.5,
+            # z_far=8,
+            # povy=90):
 
         self.position = np.array(position)
         self.z_far = z_far
@@ -74,6 +74,11 @@ class Camera(object):
         elif right:
             self.position = self.position + self.right * 1/300
 
+        self.update()
+
+    def set_options(self, position, direction):
+        self.position = position
+        self.direction = direction / np.linalg.norm(direction)
         self.update()
 
     def update(self):
